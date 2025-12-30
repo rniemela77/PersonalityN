@@ -1,5 +1,93 @@
-# Vue 3 + Vite
+# PersonalityN
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## Overview
+PersonalityN is a Vue 3 application built with Vite. It uses Firebase (Auth, Firestore, Analytics) on the client and includes a simple Netlify Function for serverless APIs. The app is router-enabled via Vue Router.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+- **Frontend**: Vue 3 + Vite
+- **Backend (serverless)**: Netlify Functions (`netlify/functions`)
+- **Services**: Firebase Auth, Firestore, Analytics
+
+## Prerequisites
+- Node.js 18+ and npm 8+
+- (Optional) Netlify CLI for local functions/dev proxy
+
+## Getting Started
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the Vite dev server:
+   ```bash
+   npm run dev
+   ```
+3. Visit the app at the URL printed in your terminal (typically `http://localhost:5173`).
+
+### Running with Netlify Dev (local serverless functions)
+If you want the Netlify Functions to run locally and be proxied to your frontend:
+```bash
+npm run dev:netlify
+```
+This command uses the Netlify CLI to run both the frontend and functions together. The function endpoint will be available at `/.netlify/functions/hello`.
+
+Example request:
+```bash
+curl "http://localhost:8888/.netlify/functions/hello?name=World"
+```
+
+## Scripts
+Defined in `package.json`:
+
+- `npm run dev`: Start Vite dev server
+- `npm run dev:netlify`: Start Netlify Dev (frontend + functions)
+- `npm run build`: Build for production
+- `npm run preview`: Preview the production build locally
+
+## Project Structure
+```
+.
+├─ netlify/
+│  └─ functions/
+│     └─ hello.js            # Example Netlify Function
+├─ public/                    # Static assets
+├─ src/
+│  ├─ assets/                 # Frontend assets
+│  ├─ components/             # Vue components
+│  ├─ pages/                  # Route components
+│  ├─ firebase.js             # Firebase initialization
+│  ├─ main.js                 # App entry, router mount
+│  ├─ router.js               # Vue Router configuration
+│  └─ App.vue                 # Root component
+├─ vite.config.js             # Vite configuration
+└─ netlify.toml               # Netlify config (functions directory)
+```
+
+## Firebase
+Firebase is initialized in `src/firebase.js` with Auth, Firestore, and Analytics
+
+## Example `.env`
+```bash
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_MEASUREMENT_ID=...
+```
+
+## Netlify Functions
+- Functions live in `netlify/functions`. The example function is `hello.js` and is exposed at `/.netlify/functions/hello`.
+- Local dev via `npm run dev:netlify` (requires Netlify CLI).
+
+## Build and Preview
+- Build:
+  ```bash
+  npm run build
+  ```
+- Preview the built app:
+  ```bash
+  npm run preview
+  ```
+
+## Deployment
+- `prod` branch deploys to Netlify

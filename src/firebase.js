@@ -4,13 +4,32 @@ import { getAuth } from 'firebase/auth'
 import { getAnalytics } from 'firebase/analytics'
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyB9jmkd1c67nrfuRGdYj26dc_7gEgk_cC4',
-  authDomain: 'personalityn-4f231.firebaseapp.com',
-  projectId: 'personalityn-4f231',
-  storageBucket: 'personalityn-4f231.firebasestorage.app',
-  messagingSenderId: '89670697022',
-  appId: '1:89670697022:web:a39e53c2605e06dea8916f',
-  measurementId: 'G-9NJ5BW5VRW'
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+}
+
+// Validate that all required environment variables are present
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID',
+  'VITE_FIREBASE_MEASUREMENT_ID'
+]
+
+const missingVars = requiredEnvVars.filter(key => !import.meta.env[key])
+if (missingVars.length > 0) {
+  throw new Error(
+    `Missing required Firebase environment variables: ${missingVars.join(', ')}\n` +
+    'Please create a .env file with these variables. See .env.example for reference.'
+  )
 }
 
 export const app = initializeApp(firebaseConfig)
