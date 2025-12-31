@@ -8,6 +8,8 @@ import { db } from '../firebase.js'
 export async function createQuiz({
   name,
   firstQuestionText = '',
+  aiQuiz = null,
+  aiRawText = '',
   ownerUid = null,
   ownerEmail = null,
 }) {
@@ -17,6 +19,8 @@ export async function createQuiz({
   const docRef = await addDoc(collection(db, 'quizzes'), {
     name: trimmedName,
     firstQuestionText,
+    aiQuiz,
+    aiRawText,
     ownerUid,
     ownerEmail,
     createdAt: serverTimestamp(),

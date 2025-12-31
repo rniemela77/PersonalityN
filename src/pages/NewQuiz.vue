@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { generateFirstQuizQuestion } from '../api/openaiQuiz'
+import { generateQuiz } from '../api/openaiQuiz'
 import { createQuiz } from '../api/quizzes'
 import { auth } from '../firebase.js'
 
@@ -8,21 +8,38 @@ const quizName = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
 const resultText = ref('')
+const resultJson = ref(null)
 const savedQuizId = ref('')
 
 async function onStart() {
   isLoading.value = true
   errorMsg.value = ''
   resultText.value = ''
+  resultJson.value = null
   savedQuizId.value = ''
   try {
-    const firstQuestionText = await generateFirstQuizQuestion({ quizName: quizName.value })
-    resultText.value = firstQuestionText
+    const aiRawText = await generateQuiz({ quizName: quizName.value })
+    resultText.value = aiRawText
+
+    let aiQuiz = null
+    let firstQuestionText = ''
+    try {
+      aiQuiz = JSON.parse(aiRawText)
+      firstQuestionText =
+        aiQuiz?.quiz?.questions?.[0]?.text ||
+        aiQuiz?.questions?.[0]?.text ||
+        ''
+      resultJson.value = aiQuiz
+    } catch {
+      // If the model returns non-JSON, we still save raw text for debugging.
+    }
 
     const user = auth.currentUser
     const docRef = await createQuiz({
       name: quizName.value,
       firstQuestionText,
+      aiQuiz,
+      aiRawText,
       ownerUid: user?.uid || null,
       ownerEmail: user?.email || null,
     })
@@ -57,7 +74,12 @@ async function onStart() {
 
     <p v-if="errorMsg" class="error">Error: {{ errorMsg }}</p>
 
-    <div v-if="resultText" class="result">
+    <div v-if="resultJson" class="result">
+      <h2>Parsed quiz JSON (stored as Firestore object)</h2>
+      <pre>{{ JSON.stringify(resultJson, null, 2) }}</pre>
+    </div>
+
+    <div v-else-if="resultText" class="result">
       <h2>OpenAI response</h2>
       <pre>{{ resultText }}</pre>
     </div>

@@ -1,4 +1,4 @@
-export async function generateFirstQuizQuestion({ quizName }) {
+export async function generateQuiz({ quizName }) {
   const resp = await fetch('/.netlify/functions/openai-chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -15,5 +15,8 @@ export async function generateFirstQuizQuestion({ quizName }) {
 
   return data.text || ''
 }
+
+// Backwards-compatible alias (older UI code used this name)
+export const generateFirstQuizQuestion = generateQuiz
 
 

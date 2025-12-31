@@ -1,9 +1,11 @@
-exports.handler = async (event) => {
+import SYSTEM_PROMPT from './SYSTEM_PROMPT.js'
+import buildUserPrompt from './USER_PROMPT.js'
+
+export const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 204,
       headers: {
-        // Same-origin in practice, but harmless to include for local/dev tooling.
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -46,26 +48,31 @@ exports.handler = async (event) => {
   const quizName = typeof body.quizName === 'string' ? body.quizName.trim() : ''
 
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 25_000)
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        temperature: 0.4,
+        temperature: 0.3,
+        max_tokens: 1400,
+        response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: 'You are an AI that generates the first question of a quiz.' },
+          { role: 'system', content: SYSTEM_PROMPT },
           {
             role: 'user',
-            content: `Generate the first question of a quiz.${
-              quizName ? ` The quiz name is: "${quizName}".` : ''
-            }`,
+            content: buildUserPrompt(quizName),
           },
         ],
       }),
     })
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const errText = await response.text().catch(() => '')
