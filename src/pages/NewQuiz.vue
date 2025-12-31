@@ -1,18 +1,32 @@
 <script setup>
 import { ref } from 'vue'
 import { generateFirstQuizQuestion } from '../api/openaiQuiz'
+import { createQuiz } from '../api/quizzes'
+import { auth } from '../firebase.js'
 
 const quizName = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
 const resultText = ref('')
+const savedQuizId = ref('')
 
 async function onStart() {
   isLoading.value = true
   errorMsg.value = ''
   resultText.value = ''
+  savedQuizId.value = ''
   try {
-    resultText.value = await generateFirstQuizQuestion({ quizName: quizName.value })
+    const firstQuestionText = await generateFirstQuizQuestion({ quizName: quizName.value })
+    resultText.value = firstQuestionText
+
+    const user = auth.currentUser
+    const docRef = await createQuiz({
+      name: quizName.value,
+      firstQuestionText,
+      ownerUid: user?.uid || null,
+      ownerEmail: user?.email || null,
+    })
+    savedQuizId.value = docRef.id
   } catch (err) {
     errorMsg.value = String(err?.message || err)
   } finally {
@@ -47,6 +61,10 @@ async function onStart() {
       <h2>OpenAI response</h2>
       <pre>{{ resultText }}</pre>
     </div>
+
+    <p v-if="savedQuizId" class="saved">
+      Saved quiz id: <code>{{ savedQuizId }}</code>
+    </p>
   </section>
 </template>
 
@@ -87,6 +105,9 @@ button {
   background: #3F3F3F;
   border: 1px solid #646464;
   border-radius: 8px;
+}
+.saved {
+  color: #0a0;
 }
 </style>
 

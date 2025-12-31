@@ -11,7 +11,7 @@ async function loadQuizzes() {
 	isLoading.value = true
 	loadError.value = ''
 	try {
-		const quizzesQuery = query(collection(db, 'quizzes'), orderBy('title'))
+		const quizzesQuery = query(collection(db, 'quizzes'), orderBy('name'))
 		const snapshot = await getDocs(quizzesQuery)
 		quizzes.value = snapshot.docs.map((doc) => ({
 			id: doc.id,
@@ -37,7 +37,7 @@ onMounted(loadQuizzes)
 		<p v-else-if="loadError" style="color:#c00">Failed to load: {{ loadError }}</p>
 		<ul v-else>
 			<li v-for="quiz in quizzes" :key="quiz.id">
-				{{ quiz.title || 'Untitled quiz' }}
+				{{ quiz.name || 'Untitled quiz' }}
 			</li>
 		</ul>
 	</section>
