@@ -5,7 +5,7 @@ PersonalityN is a Vue 3 application built with Vite. It uses Firebase (Auth, Fir
 
 - **Frontend**: Vue 3 + Vite
 - **Backend (serverless)**: Netlify Functions (`netlify/functions`)
-- **Services**: Firebase Auth, Firestore, Analytics
+- **Services**: Firebase Auth, Firestore, Analytics, Openai
 
 ## Prerequisites
 - Node.js 18+ and npm 8+
@@ -42,38 +42,11 @@ Defined in `package.json`:
 - `npm run build`: Build for production
 - `npm run preview`: Preview the production build locally
 
-## Project Structure
-```
-.
-├─ netlify/
-│  └─ functions/
-│     └─ hello.js            # Example Netlify Function
-├─ public/                    # Static assets
-├─ src/
-│  ├─ assets/                 # Frontend assets
-│  ├─ components/             # Vue components
-│  ├─ pages/                  # Route components
-│  ├─ firebase.js             # Firebase initialization
-│  ├─ main.js                 # App entry, router mount
-│  ├─ router.js               # Vue Router configuration
-│  └─ App.vue                 # Root component
-├─ vite.config.js             # Vite configuration
-└─ netlify.toml               # Netlify config (functions directory)
-```
-
 ## Firebase
 Firebase is initialized in `src/firebase.js` with Auth, Firestore, and Analytics
 
-## Example `.env`
-```bash
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-VITE_FIREBASE_MEASUREMENT_ID=...
-```
+## OpenAI
+OpenAI is initialized in `src/openai.js` and used to generate quiz questions via an API call from the client.
 
 ## Netlify Functions
 - Functions live in `netlify/functions`. The example function is `hello.js` and is exposed at `/.netlify/functions/hello`.

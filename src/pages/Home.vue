@@ -29,7 +29,10 @@ onMounted(loadQuizzes)
 
 <template>
 	<section>
-		<h1 style="margin:0 0 1rem 0;">Quizzes</h1>
+		<div style="display:flex; align-items:baseline; gap: 1rem; margin:0 0 1rem 0;">
+			<h1 style="margin:0;">Quizzes</h1>
+			<RouterLink to="/new-quiz">New Quiz</RouterLink>
+		</div>
 		<p v-if="isLoading">Loading quizzes…</p>
 		<p v-else-if="loadError" style="color:#c00">Failed to load: {{ loadError }}</p>
 		<ul v-else>

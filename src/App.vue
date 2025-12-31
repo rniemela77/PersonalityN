@@ -5,6 +5,7 @@
   <nav class="top-nav">
     <a class="brand" href="/">PersonalityN</a>
     <div class="links">
+      <RouterLink to="/new-quiz">New Quiz</RouterLink>
       <RouterLink to="/signin">Sign In</RouterLink>
       <RouterLink to="/signup">Sign Up</RouterLink>
     </div>
