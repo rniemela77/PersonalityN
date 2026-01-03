@@ -32,12 +32,15 @@ onMounted(loadQuizzes)
 		<div style="display:flex; align-items:baseline; gap: 1rem; margin:0 0 1rem 0;">
 			<h1 style="margin:0;">Quizzes</h1>
 			<RouterLink to="/new-quiz">New Quiz</RouterLink>
+			<RouterLink to="/quiz/local/quiz1">Run local quiz1.json</RouterLink>
 		</div>
 		<p v-if="isLoading">Loading quizzes…</p>
 		<p v-else-if="loadError" style="color:#c00">Failed to load: {{ loadError }}</p>
 		<ul v-else>
 			<li v-for="quiz in quizzes" :key="quiz.id">
-				{{ quiz.name || 'Untitled quiz' }}
+				<RouterLink :to="`/quiz/${quiz.id}`">
+					{{ quiz.name || 'Untitled quiz' }}
+				</RouterLink>
 			</li>
 		</ul>
 	</section>

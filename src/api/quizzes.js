@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase.js'
 
 /**
@@ -28,6 +28,19 @@ export async function createQuiz({
   })
 
   return docRef
+}
+
+/**
+ * Loads a quiz document from Firestore (returns { id, ...data }).
+ */
+export async function getQuizById(id) {
+  const trimmedId = String(id || '').trim()
+  if (!trimmedId) throw new Error('Quiz id is required')
+
+  const snap = await getDoc(doc(db, 'quizzes', trimmedId))
+  if (!snap.exists()) throw new Error('Quiz not found')
+
+  return { id: snap.id, ...(snap.data() ?? {}) }
 }
 
 

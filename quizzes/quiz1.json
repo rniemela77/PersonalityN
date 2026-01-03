@@ -1,0 +1,124 @@
+{
+    "quiz_metadata": {
+      "title": "The Core Mechanics Profile",
+      "description": "A high-fidelity assessment of your decision-making style. This quiz uses forced-choice triads to bypass your internal biases and reveal your true operational priorities.",
+      "format": "Ipsative Triad (Most/Least)",
+      "traits": [
+        {"id": "architect", "label": "The Architect", "focus": "Systemic Consistency & Logic"},
+        {"id": "diplomat", "label": "The Diplomat", "focus": "Situational Context & Harmony"},
+        {"id": "strategist", "label": "The Strategist", "focus": "Practical Utility & Results"}
+      ]
+    },
+    "questions": [
+      {
+        "id": 1,
+        "scenario": "A project is behind schedule. The quality is perfect, but the deadline is tomorrow. How do you respond?",
+        "options": [
+          {
+            "text": "Refuse to rush. The integrity of the work and the established standards must come first.",
+            "trait": "architect"
+          },
+          {
+            "text": "Check in with the team's energy levels. A burnout is worse than a late delivery.",
+            "trait": "diplomat"
+          },
+          {
+            "text": "Cut the non-essential features immediately. We ship a 'good enough' version on time.",
+            "trait": "strategist"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "scenario": "You realize a colleague made a significant but honest mistake. Correcting it will make them look bad in front of the boss.",
+        "options": [
+          {
+            "text": "Report the error through the proper channels. Facts and data must remain accurate for the system to work.",
+            "trait": "architect"
+          },
+          {
+            "text": "Pull the colleague aside privately to help them fix it. Preserving their confidence is the priority.",
+            "trait": "diplomat"
+          },
+          {
+            "text": "Fix the error yourself quickly and move on. There's no time for a post-mortem; we have targets to hit.",
+            "trait": "strategist"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "scenario": "You are awarded a large budget for a team-building event. What do you plan?",
+        "options": [
+          {
+            "text": "An educational workshop with a clear syllabus that teaches a new, useful skill.",
+            "trait": "architect"
+          },
+          {
+            "text": "An open-ended social dinner where everyone can connect and resolve any underlying tensions.",
+            "trait": "diplomat"
+          },
+          {
+            "text": "A competitive high-stakes activity that challenges the team to win or solve a puzzle together.",
+            "trait": "strategist"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "scenario": "A close friend asks for your opinion on a business idea that you think is flawed.",
+        "options": [
+          {
+            "text": "List the logical inconsistencies and data points that prove why the model will fail.",
+            "trait": "architect"
+          },
+          {
+            "text": "Find the kernels of potential in their idea and offer encouragement to keep them inspired.",
+            "trait": "diplomat"
+          },
+          {
+            "text": "Suggest a complete pivot to a different, more profitable niche that you know is working right now.",
+            "trait": "strategist"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "scenario": "In a group setting, a new rule is introduced that you find slightly unfair but highly efficient.",
+        "options": [
+          {
+            "text": "Challenge the rule on principle. If a rule isn't fair to everyone, it shouldn't exist.",
+            "trait": "architect"
+          },
+          {
+            "text": "Watch how the group reacts. If it causes significant distress, you'll advocate for a compromise.",
+            "trait": "diplomat"
+          },
+          {
+            "text": "Adopt the rule immediately. If it produces better results for the group, the 'fairness' is secondary.",
+            "trait": "strategist"
+          }
+        ]
+      }
+    ],
+    "results_logic": {
+      "calculation": "Assign +2 to 'Most', -2 to 'Least', and 0 to the unselected option. Sum the scores for each trait.",
+      "profiles": [
+        {
+          "trait": "architect",
+          "title": "The Architect",
+          "description": "You are driven by universal principles and systemic integrity. You believe that the world should operate on consistent rules, and you are often the one brave enough to uphold them even when it's unpopular."
+        },
+        {
+          "trait": "diplomat",
+          "title": "The Diplomat",
+          "description": "You are driven by the 'Human Element.' You understand that rules are useless if the people within the system are unhappy. You excel at navigating nuance and individual context."
+        },
+        {
+          "trait": "strategist",
+          "title": "The Strategist",
+          "description": "You are driven by the finish line. You have a low tolerance for unnecessary bureaucracy or emotional stalling. For you, the most 'moral' choice is the one that actually works."
+        }
+      ]
+    }
+  }
