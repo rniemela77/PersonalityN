@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { generateQuiz } from '../api/openaiQuiz'
 import { createQuiz } from '../api/quizzes'
 import { auth } from '../firebase.js'
+import { waitForAuthReady } from '../authReady'
 
 const quizName = ref('')
 const isLoading = ref(false)
@@ -18,6 +19,9 @@ async function onStart() {
   resultJson.value = null
   savedQuizId.value = ''
   try {
+    const user = await waitForAuthReady()
+    if (!user) throw new Error('Please sign in before creating a quiz.')
+
     const aiRawText = await generateQuiz({ quizName: quizName.value })
     resultText.value = aiRawText
 
@@ -34,14 +38,13 @@ async function onStart() {
       // If the model returns non-JSON, we still save raw text for debugging.
     }
 
-    const user = auth.currentUser
     const docRef = await createQuiz({
       name: quizName.value,
       firstQuestionText,
       aiQuiz,
       aiRawText,
-      ownerUid: user?.uid || null,
-      ownerEmail: user?.email || null,
+      ownerUid: user.uid,
+      ownerEmail: user.email || null,
     })
     savedQuizId.value = docRef.id
   } catch (err) {

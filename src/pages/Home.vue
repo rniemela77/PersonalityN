@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { collection, getDocs, query, orderBy } from 'firebase/firestore'
 import { db } from '../firebase'
+import { waitForAuthReady } from '../authReady'
 
 const isLoading = ref(true)
 const loadError = ref('')
@@ -11,6 +12,12 @@ async function loadQuizzes() {
 	isLoading.value = true
 	loadError.value = ''
 	try {
+    const user = await waitForAuthReady()
+    if (!user) {
+      quizzes.value = []
+      loadError.value = 'Please sign in to load quizzes.'
+      return
+    }
 		const quizzesQuery = query(collection(db, 'quizzes'), orderBy('name'))
 		const snapshot = await getDocs(quizzesQuery)
 		quizzes.value = snapshot.docs.map((doc) => ({

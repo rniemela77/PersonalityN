@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MostLeastDrag from '../components/MostLeastDrag.vue'
 import { getQuizById } from '../api/quizzes'
+import { waitForAuthReady } from '../authReady'
 
 // Local quiz support (for quick iteration)
 import localQuiz1 from '../../quizzes/quiz1.json'
@@ -41,6 +42,11 @@ async function load() {
       if (slug !== 'quiz1') throw new Error(`Unknown local quiz: ${slug}`)
       quiz.value = normalizeQuiz(localQuiz1)
       return
+    }
+
+    const user = await waitForAuthReady()
+    if (!user) {
+      throw new Error('Please sign in to load this quiz.')
     }
 
     const id = String(route.params.id || '')

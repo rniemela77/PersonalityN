@@ -14,8 +14,12 @@ const emit = defineEmits(['update:modelValue'])
 const mostIdx = computed(() => props.modelValue?.mostIdx ?? null)
 const leastIdx = computed(() => props.modelValue?.leastIdx ?? null)
 
-const isPickingUp = ref(false)
+const isPickingUp = ref(false) // highlights drop zones while the user is dragging a card
 const isDragging = ref(false)
+const draggingIdx = ref(null) // option index being dragged (pointer-based)
+const hoverTarget = ref(null) // 'most' | 'least' | 'pool' | null
+const dragPos = ref({ x: 0, y: 0 })
+const dragOffset = ref({ x: 0, y: 0 })
 
 const options = computed(() => Array.isArray(props.question?.options) ? props.question.options : [])
 
@@ -29,15 +33,14 @@ function startPickup() {
 }
 
 function endPickup() {
-  // If an HTML drag is active, some browsers emit pointercancel/pointerup;
-  // we keep the highlight on until dragend/drop.
-  if (isDragging.value) return
   isPickingUp.value = false
 }
 
 function onDragEnd() {
   isDragging.value = false
   isPickingUp.value = false
+  draggingIdx.value = null
+  hoverTarget.value = null
 }
 
 function setMost(idx) {
@@ -58,57 +61,80 @@ function clearLeast() {
   emit('update:modelValue', { mostIdx: mostIdx.value, leastIdx: null })
 }
 
-function onDragStart(e, idx) {
+function getTargetFromPoint(x, y) {
+  const el = document.elementFromPoint(x, y)
+  if (!el) return null
+  if (el.closest?.('.zone.most')) return 'most'
+  if (el.closest?.('.zone.least')) return 'least'
+  if (el.closest?.('.pool')) return 'pool'
+  return null
+}
+
+function onPointerDownCard(e, idx) {
+  // Only left click for mouse.
+  if (e?.pointerType === 'mouse' && e?.button !== 0) return
+  if (idx == null) return
+
+  // Prevent the browser from treating the gesture as a scroll (mobile) or text-selection.
+  // This is the key change to avoid “hold then drag” behavior on touch devices.
+  e.preventDefault?.()
+
   startPickup()
   isDragging.value = true
+  draggingIdx.value = idx
+
+  const rect = e.currentTarget?.getBoundingClientRect?.()
+  if (rect) {
+    dragOffset.value = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+  } else {
+    dragOffset.value = { x: 24, y: 24 }
+  }
+  dragPos.value = { x: e.clientX, y: e.clientY }
+  hoverTarget.value = getTargetFromPoint(e.clientX, e.clientY)
+
   try {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', String(idx))
+    e.currentTarget?.setPointerCapture?.(e.pointerId)
   } catch {
     // ignore
   }
 }
 
-function getDraggedIdx(e) {
-  const raw = e?.dataTransfer?.getData?.('text/plain')
-  const idx = Number(raw)
-  return Number.isFinite(idx) ? idx : null
+function onGlobalPointerMove(e) {
+  if (!isDragging.value || draggingIdx.value == null) return
+  e.preventDefault?.()
+  dragPos.value = { x: e.clientX, y: e.clientY }
+  hoverTarget.value = getTargetFromPoint(e.clientX, e.clientY)
 }
 
-function onDropToMost(e) {
-  const idx = getDraggedIdx(e)
-  if (idx === null) return
-  if (idx < 0 || idx >= options.value.length) return
-  setMost(idx)
-  onDragEnd()
-}
+function onGlobalPointerUp(e) {
+  if (!isDragging.value || draggingIdx.value == null) return
+  e.preventDefault?.()
 
-function onDropToLeast(e) {
-  const idx = getDraggedIdx(e)
-  if (idx === null) return
-  if (idx < 0 || idx >= options.value.length) return
-  setLeast(idx)
-  onDragEnd()
-}
+  const idx = draggingIdx.value
+  const target = getTargetFromPoint(e.clientX, e.clientY) || hoverTarget.value
 
-function onDropToPool(e) {
-  const idx = getDraggedIdx(e)
-  if (idx === null) return
-  if (idx === mostIdx.value) clearMost()
-  if (idx === leastIdx.value) clearLeast()
+  if (target === 'most') setMost(idx)
+  else if (target === 'least') setLeast(idx)
+  else if (target === 'pool') {
+    if (idx === mostIdx.value) clearMost()
+    if (idx === leastIdx.value) clearLeast()
+  }
+
   onDragEnd()
 }
 
 onMounted(() => {
   // Ensure drop zones un-highlight if the user releases the pointer outside the component.
-  window.addEventListener('pointerup', endPickup)
-  window.addEventListener('pointercancel', endPickup)
+  window.addEventListener('pointermove', onGlobalPointerMove, { passive: false })
+  window.addEventListener('pointerup', onGlobalPointerUp, { passive: false })
+  window.addEventListener('pointercancel', onGlobalPointerUp, { passive: false })
   window.addEventListener('blur', endPickup)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('pointerup', endPickup)
-  window.removeEventListener('pointercancel', endPickup)
+  window.removeEventListener('pointermove', onGlobalPointerMove)
+  window.removeEventListener('pointerup', onGlobalPointerUp)
+  window.removeEventListener('pointercancel', onGlobalPointerUp)
   window.removeEventListener('blur', endPickup)
 })
 </script>
@@ -122,19 +148,15 @@ onBeforeUnmount(() => {
 
     <div
       class="zone most"
-      :class="{ filled: mostIdx !== null, activeDrop: isPickingUp }"
-      @dragover.prevent
-      @drop.prevent="onDropToMost"
+      :class="{ filled: mostIdx !== null, activeDrop: isPickingUp, hovered: hoverTarget === 'most' }"
     >
       <div class="zoneTitle">Most like me</div>
       <div v-if="mostIdx === null" class="zoneEmpty">Drop a card here</div>
       <div v-else class="picked">
         <div
           class="card pickedCard"
-          draggable="true"
-          @pointerdown="startPickup"
-          @dragstart="(e) => onDragStart(e, mostIdx)"
-          @dragend="onDragEnd"
+          :class="{ dragging: draggingIdx === mostIdx }"
+          @pointerdown="(e) => onPointerDownCard(e, mostIdx)"
         >
           {{ options[mostIdx]?.text }}
         </div>
@@ -144,8 +166,7 @@ onBeforeUnmount(() => {
 
     <div
       class="pool"
-      @dragover.prevent
-      @drop.prevent="onDropToPool"
+      :class="{ hovered: hoverTarget === 'pool' }"
     >
       <div class="poolTitle">Choices</div>
       <div class="poolGrid">
@@ -153,10 +174,8 @@ onBeforeUnmount(() => {
           v-for="idx in poolOptionIdxs"
           :key="idx"
           class="card"
-          draggable="true"
-          @pointerdown="startPickup"
-          @dragstart="(e) => onDragStart(e, idx)"
-          @dragend="onDragEnd"
+          :class="{ dragging: draggingIdx === idx }"
+          @pointerdown="(e) => onPointerDownCard(e, idx)"
           @dblclick="() => setMost(idx)"
           title="Drag to a zone (double-click assigns to Most)"
         >
@@ -167,24 +186,32 @@ onBeforeUnmount(() => {
 
     <div
       class="zone least"
-      :class="{ filled: leastIdx !== null, activeDrop: isPickingUp }"
-      @dragover.prevent
-      @drop.prevent="onDropToLeast"
+      :class="{ filled: leastIdx !== null, activeDrop: isPickingUp, hovered: hoverTarget === 'least' }"
     >
       <div class="zoneTitle">Least like me</div>
       <div v-if="leastIdx === null" class="zoneEmpty">Drop a card here</div>
       <div v-else class="picked">
         <div
           class="card pickedCard"
-          draggable="true"
-          @pointerdown="startPickup"
-          @dragstart="(e) => onDragStart(e, leastIdx)"
-          @dragend="onDragEnd"
+          :class="{ dragging: draggingIdx === leastIdx }"
+          @pointerdown="(e) => onPointerDownCard(e, leastIdx)"
         >
           {{ options[leastIdx]?.text }}
         </div>
         <button type="button" class="small" @click="clearLeast">Remove</button>
       </div>
+    </div>
+
+    <!-- pointer-based drag ghost (helps on mobile where there is no native drag preview) -->
+    <div
+      v-if="isDragging && draggingIdx !== null"
+      class="dragGhost"
+      :style="{
+        left: `${dragPos.x - dragOffset.x}px`,
+        top: `${dragPos.y - dragOffset.y}px`,
+      }"
+    >
+      {{ options[draggingIdx]?.text }}
     </div>
   </div>
 </template>
@@ -223,6 +250,11 @@ onBeforeUnmount(() => {
   background: rgba(100, 108, 255, 0.08);
   box-shadow: 0 0 0 3px rgba(100, 108, 255, 0.14);
 }
+.zone.hovered,
+.pool.hovered {
+  border-color: rgba(100, 108, 255, 0.75);
+  box-shadow: 0 0 0 3px rgba(100, 108, 255, 0.18);
+}
 .zoneTitle {
   font-weight: 650;
   margin-bottom: 0.5rem;
@@ -241,6 +273,9 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: grab;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none; /* critical: prevent scroll/pull-to-refresh during drag on mobile */
   text-align: left;
   transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
@@ -251,6 +286,9 @@ onBeforeUnmount(() => {
 }
 .card:active {
   transform: translateY(0px);
+}
+.card.dragging {
+  opacity: 0.55;
 }
 .pickedCard {
   cursor: grab;
@@ -273,6 +311,18 @@ onBeforeUnmount(() => {
   justify-self: start;
   padding: 0.35rem 0.6rem;
   font-size: 0.9rem;
+}
+
+.dragGhost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  max-width: min(520px, calc(100vw - 2rem));
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(36, 36, 36, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 </style>
 
